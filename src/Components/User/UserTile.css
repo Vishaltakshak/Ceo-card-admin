@@ -1,0 +1,32 @@
+.UserName{
+    position: absolute;
+    width: 10%;
+    background-color: white;
+}
+.Email{
+    width: 30%;
+    background-color: white;
+    overflow: hidden;
+}
+.PhoneNO{
+    width: 15%;
+    color: white;
+    background-color: white;
+}
+.UserRole{
+    width: 5%;
+    background-color: white;
+    
+}
+.userPhoto{
+    width: 15%;
+    background-color: aliceblue;
+}
+.UserStatus{
+    width: 5%;
+    background-color: wheat;
+}
+.Actions{
+    width: 10%;
+    background-color: white;
+}
