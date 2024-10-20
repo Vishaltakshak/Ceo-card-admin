@@ -1,63 +1,70 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import useApi from '../../useApi/useApi';
+import React, { useState, useEffect } from "react";
+import useApi from "../../useApi/useApi";
 
-export default function ServiceUpdateForm({ active, setActive, handleUpdate, navbar, onUpdate, services }) {
-  const { findData, updateData,fetchData } = useApi();
-  const [servie, setService]=useState([])
+export default function ServiceUpdateForm({
+  active,
+  setActive,
+  handleUpdate,
+  navbar,
+  onUpdate,
+  services,
+}) {
+  const { findData, updateData, fetchData } = useApi();
+  const [servie, setService] = useState([]);
+  const [subCat, setSubCat] = useState([]);
   const [formData, setFormData] = useState({
-    ProviderName: '',
-    ContactMail: '',
-    ContactNumber: '',
-    WebsiteURl: '',
-    ServiceCatergory: '',
-    SubCategory: '',
-    ContentTitle: '',
-    ContentDescription: '',
-    CardTitle: '',
-    CardDescription: '',
-    Offer: '',
-    Latitude: '',
-    Longitude: '',
-    Status: 'Active',
-    BannerIMG: '',
-    ServiceIMG: ''
+    ProviderName: "",
+    ContactMail: "",
+    ContactNumber: "",
+    WebsiteURl: "",
+    ServiceCatergory: "",
+    SubCategory: "",
+    ContentTitle: "",
+    ContentDescription: "",
+    CardTitle: "",
+    CardDescription: "",
+    Offer: "",
+    Latitude: "",
+    Longitude: "",
+    Status: "Active",
+    BannerIMG: "",
+    ServiceIMG: "",
   });
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-        await updateData('subnav/link/update', navbar._id, formData); // Update with correct endpoint
-        console.log('Category updated successfully');
-        onUpdate(formData);
-        setActive(0); // Close the form after submission
+      await updateData("subnav/link/update", navbar._id, formData); // Update with correct endpoint
+      console.log("Category updated successfully");
+      onUpdate(formData);
+      setActive(0); // Close the form after submission
     } catch (error) {
-        console.error('Error updating category:', error);
+      console.error("Error updating category:", error);
     }
-};
+  };
 
-
-
-  const handleReset=()=>{
-    setFormData({ ProviderName: '',
-      ContactMail: '',
-      ContactNumber: '',
-      WebsiteURl: '',
-      ServiceCatergory: '',
-      SubCategory: '',
-      ContentTitle: '',
-      ContentDescription: '',
-      CardTitle: '',
-      CardDescription: '',
-      Offer: '',
-      Latitude: '',
-      Longitude: '',
-      Status: 'Active',
-      BannerIMG: '',
-      ServiceIMG: ''})
-
-  }
+  const handleReset = () => {
+    setFormData({
+      ProviderName: "",
+      ContactMail: "",
+      ContactNumber: "",
+      WebsiteURl: "",
+      ServiceCatergory: "",
+      SubCategory: "",
+      ContentTitle: "",
+      ContentDescription: "",
+      CardTitle: "",
+      CardDescription: "",
+      Offer: "",
+      Latitude: "",
+      Longitude: "",
+      Status: "Active",
+      BannerIMG: "",
+      ServiceIMG: "",
+    });
+  };
 
   const [bannerImages, setBannerImages] = useState([]);
   const [serviceImages, setServiceImages] = useState([]);
@@ -71,14 +78,21 @@ export default function ServiceUpdateForm({ active, setActive, handleUpdate, nav
           setFormData(response.data.Users);
         }
 
-
-        const ServiceCat = await fetchData('NavBar/view');
-      const services= ServiceCat.data.Data;
-      if(services){
-        setService(services.map(item=>item.CategoryName))
-      }
+        const ServiceCat = await fetchData("NavBar/view");
+        const services = ServiceCat.data.Data;
+        if (services) {
+          setService(services.map((item) => item.CategoryName));
+        }
       } catch (error) {
-        console.error('Error fetching category data:', error);
+        console.error("Error fetching category data:", error);
+      }
+
+      const fetchsubCat = await fetchData("Nav/hover/view");
+      const subcat = fetchsubCat.data.Data;
+      console.log("subcat", subcat);
+      if (subcat) {
+        const subCategoryNames = subcat.map((e) => e.SubCategoryName);
+        setSubCat(subCategoryNames);
       }
     };
 
@@ -87,20 +101,18 @@ export default function ServiceUpdateForm({ active, setActive, handleUpdate, nav
 
   const handleImageUpload = (event, setImages) => {
     const files = Array.from(event.target.files);
-    setImages(prevImages => [...prevImages, ...files]);
+    setImages((prevImages) => [...prevImages, ...files]);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({ ...prevState, [name]: value }));
+    setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
-  const handleCancel=()=>{
-    setActive(0)
-    console.log(active)
-
-  }
- 
+  const handleCancel = () => {
+    setActive(0);
+    console.log(active);
+  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
@@ -108,13 +120,17 @@ export default function ServiceUpdateForm({ active, setActive, handleUpdate, nav
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.entries(formData).map(([key, value]) => {
-            if (['BannerIMG', 'ServiceIMG'].includes(key)) return null;
+            if (["BannerIMG", "ServiceIMG", "SubCategory"].includes(key))
+              return null;
             return (
               <div key={key}>
-                <label htmlFor={key} className="block text-sm font-medium text-gray-700 mb-1">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                <label
+                  htmlFor={key}
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  {key.replace(/([A-Z])/g, " $1").trim()}
                 </label>
-                {key === 'ServiceCatergory' || key === 'SubCategory' || key === 'Status' ? (
+                {key === "ServiceCatergory" || key === "Status" ? (
                   <select
                     id={key}
                     name={key}
@@ -122,13 +138,14 @@ export default function ServiceUpdateForm({ active, setActive, handleUpdate, nav
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   >
-                     {servie.map((item, index) => (
-                      <option key={index} value={item}>{item}</option>  
+                    {servie.map((item, index) => (
+                      <option key={index} value={item}>
+                        {item}
+                      </option>
                     ))}
-                    
-                    
                   </select>
-                ) : key === 'ContentDescription' || key === 'CardDescription' ? (
+                ) : key === "ContentDescription" ||
+                  key === "CardDescription" ? (
                   <textarea
                     id={key}
                     name={key}
@@ -139,7 +156,15 @@ export default function ServiceUpdateForm({ active, setActive, handleUpdate, nav
                   />
                 ) : (
                   <input
-                    type={key === 'ContactMail' ? 'email' : key === 'ContactNumber' ? 'tel' : key === 'WebsiteURl' ? 'url' : 'text'}
+                    type={
+                      key === "ContactMail"
+                        ? "email"
+                        : key === "ContactNumber"
+                        ? "tel"
+                        : key === "WebsiteURl"
+                        ? "url"
+                        : "text"
+                    }
                     id={key}
                     name={key}
                     value={value}
@@ -151,9 +176,33 @@ export default function ServiceUpdateForm({ active, setActive, handleUpdate, nav
             );
           })}
         </div>
+        <div>
+          <label
+            htmlFor="SubCategory"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Select SubCategories
+          </label>
+          <select
+            name="SubCategory"
+            id="SubCategory"
+            value={formData.SubCategory}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Select a subcategory</option>
+            {subCat.map((item, index) => (
+              <option key={index} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Banner Images/Videos</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Banner Images/Videos
+          </label>
           <input
             type="file"
             onChange={(e) => handleImageUpload(e, setBannerImages)}
@@ -162,13 +211,20 @@ export default function ServiceUpdateForm({ active, setActive, handleUpdate, nav
           />
           <div className="mt-2 flex space-x-2">
             {bannerImages.map((file, index) => (
-              <img key={index} src={URL.createObjectURL(file)} alt={`Banner ${index + 1}`} className="w-24 h-18 object-cover rounded" />
+              <img
+                key={index}
+                src={URL.createObjectURL(file)}
+                alt={`Banner ${index + 1}`}
+                className="w-24 h-18 object-cover rounded"
+              />
             ))}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Service Images</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Service Images
+          </label>
           <input
             type="file"
             onChange={(e) => handleImageUpload(e, setServiceImages)}
@@ -177,7 +233,12 @@ export default function ServiceUpdateForm({ active, setActive, handleUpdate, nav
           />
           <div className="mt-2 flex space-x-2">
             {serviceImages.map((file, index) => (
-              <img key={index} src={URL.createObjectURL(file)} alt={`Service ${index + 1}`} className="w-24 h-18 object-cover rounded" />
+              <img
+                key={index}
+                src={URL.createObjectURL(file)}
+                alt={`Service ${index + 1}`}
+                className="w-24 h-18 object-cover rounded"
+              />
             ))}
           </div>
         </div>
@@ -191,7 +252,7 @@ export default function ServiceUpdateForm({ active, setActive, handleUpdate, nav
             Cancel
           </button>
           <button
-          onClick={handleReset}
+            onClick={handleReset}
             type="button"
             className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
