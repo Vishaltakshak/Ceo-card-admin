@@ -15,7 +15,7 @@ const SubCatTiles = () => {
     try {
       const response = await fetchData("Nav/hover/view");
       setUsers(response.data.Data || []);
-      console.log("subcat", response);
+     
     } catch (err) {
       console.error("Error fetching users:", err);
     }

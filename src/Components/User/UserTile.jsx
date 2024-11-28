@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RotateCcw, Pencil, Trash2 } from 'lucide-react';
+import { RotateCcw, Pencil, Trash2, User } from 'lucide-react';
 import { UpdateForm } from './UpdateForm';
 
 export const UserTile = ({ user, onUpdate, DeleteData }) => {
@@ -66,7 +66,7 @@ export const UserTile = ({ user, onUpdate, DeleteData }) => {
           </div>
         </div>
       ) : (
-        <UpdateForm userId={user._id} onUpdate={handleUpdate} active={active} setActive={setActive} />
+        <UpdateForm user={user} userId={user._id} onUpdate={handleUpdate} active={active} setActive={setActive} />
       )}
     </div>
   );

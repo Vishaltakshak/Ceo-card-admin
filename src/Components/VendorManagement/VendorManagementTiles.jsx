@@ -5,7 +5,7 @@ import useApi from '../../useApi/useApi';
 import VendorManagementTile from './VendorManagementTile';
 
 const VendorManagementTiles = () => {
-  const { data: apiUsers, loading, error, fetchData, deleteData } = useApi();
+  const { data: apiUsers, loading, error, fetchData, deleteData} = useApi();
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ const VendorManagementTiles = () => {
           <VendorManagementTile 
             key={user._id} 
             user={user} 
-            onUpdate={handleUserUpdate}
+            onUpdate={handleUserUpdate}  
           />
         ))
       )}

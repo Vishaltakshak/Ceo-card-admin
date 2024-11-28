@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import useApi from '../../useApi/useApi';
 
 export default function VendorManagementUpdateForm({ user, active, setActive, onUpdate }) {
-  const { findData, updateData } = useApi();
+  const { findData, updateData, UploadImage } = useApi();
 
   const [formData, setFormData] = useState({
     VendorName: '',
@@ -32,71 +32,38 @@ export default function VendorManagementUpdateForm({ user, active, setActive, on
     },
   });
 
+  const fileInputRef = useRef(null);
 
-  
+  const handleImageUpload = async () => {
+    const formData = new FormData();
+    if (!fileInputRef.current || !fileInputRef.current.files[0]) {
+      console.debug("No file selected for upload.");
+      return;
+    }
 
-const handleUserUpdate = async( updatedUser) => {
-   
-    const {
-        VendorName,
-        VendorCategory,
-        ContactName,
-        ContactMail,
-        ContactNumber,
-        VendorAddress,
-        VendorAmenities,
-        // ... other fields
-        VendorImages,
-        VendorDescription,
-        VendorWebsite,
-        VendorRating,
-        VendorStatus,
+    formData.append('image', fileInputRef.current.files[0]);
 
-
-        VendorOpenHours,
-        VendorPricingInfo,
-        VendorLocationCoordinates,
-      } = updatedUser; // Destructure relevant data
-  
-      const sanitizedData = {
-        VendorName,
-        VendorCategory,
-        ContactName,
-        ContactMail,
-        ContactNumber,
-        VendorAddress,
-        VendorAmenities,
-        VendorImages,
-        VendorDescription,
-        VendorWebsite,
-        VendorRating,
-        VendorStatus,
-        VendorOpenHours,
-        VendorPricingInfo,
-        VendorLocationCoordinates,
-      };
-      try {
-        await updateData('Vendor/update', user._id, sanitizedData);
-        console.log('Vendor updated successfully');
-        console.log("formdata is", formData)
-        onUpdate(sanitizedData); // Pass the sanitized data to the onUpdate callback
-        setActive(0);
-      } catch (error) {
-        console.error('Error updating vendor:', error);
-      }
-  
-};
+    try {
+      const response = await UploadImage('Vendor/upload', formData);
+      setFormData((prevState) => ({
+        ...prevState,
+        VendorImages: response.data.VendorImages || '',
+      }));
+      console.debug("Image uploaded successfully");
+    } catch (error) {
+      console.debug("Error uploading image:", error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await updateData('Vendor/update', user._id, formData);
-      console.log('Vendor updated successfully');
-      console.log("formdata is", formData)
+      console.log("Vendor updated successfully");
       onUpdate(formData);
       setActive(0);
     } catch (error) {
-      console.error('Error updating vendor:', error);
+      console.error("Error updating vendor:", error);
     }
   };
 
@@ -108,12 +75,11 @@ const handleUserUpdate = async( updatedUser) => {
           setFormData(response.data.Users);
         }
       } catch (error) {
-        console.error('Error fetching vendor data:', error);
+        console.error("Error fetching vendor data:", error);
       }
     };
-
     fetchServiceData();
-  }, [user]);
+  }, [user, findData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -135,7 +101,7 @@ const handleUserUpdate = async( updatedUser) => {
       ...prevState,
       VendorPricingInfo: {
         ...prevState.VendorPricingInfo,
-        [field]: field === 'Currency' ? value : { 
+        [field]: field === 'Currency' ? value : {
           ...prevState.VendorPricingInfo.PriceRange,
           [field]: Number(value),
         },
@@ -156,7 +122,7 @@ const handleUserUpdate = async( updatedUser) => {
   const handleCancel = () => {
     setActive(0);
   };
-
+ 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
       <h2 className="text-2xl font-semibold mb-6 pb-2 border-b border-blue-500">Enter Vendor Details</h2>
@@ -243,6 +209,7 @@ const handleUserUpdate = async( updatedUser) => {
              <label htmlFor="VendorRating" className="block text-sm font-medium text-gray-700 mb-1">Vendor Rating</label>
              <input type="number" id="VendorRating" name="VendorRating" value={formData.VendorRating} onChange={handleChange} min="0" max="5" step="0.1" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
            </div>
+           
            <div>
              <label htmlFor="VendorImages" className="block text-sm font-medium text-gray-700 mb-1">Vendor Images</label>
              <div className="flex items-center">
@@ -250,7 +217,14 @@ const handleUserUpdate = async( updatedUser) => {
                  Choose Files
                </label>
                <span className="ml-3 text-sm text-gray-500">{formData.VendorImages ? formData.VendorImages : 'No file chosen'}</span>
-               <input type="file" id="VendorImages" name="VendorImages" onChange={handleChange} multiple className="hidden" />
+               <input
+                type="file"
+                id="VendorImages"
+                name="VendorImages"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                className="hidden"
+              />
              </div>
            </div>
         </div>
@@ -332,7 +306,7 @@ const handleUserUpdate = async( updatedUser) => {
             </select>
           </div>
            <div className="flex space-x-4">
-             <button onClick={handleUserUpdate} type="submit" className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+             <button  type="submit" className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                Submit
              </button>
              <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">

@@ -80,8 +80,66 @@ const useApi = () => {
             console.log(error.message);
         }
     };
-
-    return { data, err, fetchData, addData, updateData, deleteData,findData };
+    // const UploadImage = async (endPoint, formData) => {
+    //     try {
+    //         if (!formData) {
+    //             throw new Error('No form data provided for image upload');
+    //         }
+    //         console.log(formData);
+    //         const response = await axios.post(`${BaseUrl}/${endPoint}`, formData, {
+    //             headers: { 'Content-Type': 'multipart/form-data' },
+    //         });
+    //         if (response && response.data) {
+    //             setData((prevData) => [...prevData, response.data]);
+    //             console.log(response);
+    //             return response;
+    //         } else {
+    //             throw new Error('Invalid response format from server');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error uploading image:', error.message);
+    //         if (error.response && error.response.data) {
+    //             console.error('Error response:', error.response.data.message);
+    //         }
+    //     }
+    // };
+    const UploadImage = async (endPoint, formData) => {
+        try {
+            if (!formData) {
+                throw new Error('No form data provided for image upload');
+            }
+            
+            console.log("FormData being sent:", formData); // Log the FormData object
+            
+            const response = await axios.post(`${BaseUrl}/${endPoint}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+    
+            // Check for response
+            if (response && response.data) {
+                console.log("Server response:", response.data); // Log the response data
+                
+                // Assuming you want to add the new data to your state
+                setData((prevData) => [...prevData, response.data]); 
+    
+                return response.data; // Return only the data part
+            } else {
+                throw new Error('Invalid response format from server');
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error.message);
+            // If there is a specific error response, log it
+            if (error.response && error.response.data) {
+                console.error('Error response:', error.response.data.message);
+                throw new Error(error.response.data.message); // Throw the error message for handling
+            } else {
+                throw new Error('An error occurred during the upload'); // Generic error
+            }
+        }
+    };
+    
+    return { data, err, fetchData, addData, updateData, deleteData,findData,UploadImage };
 };
+
 
 export default useApi;

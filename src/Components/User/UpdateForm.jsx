@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Upload, Users } from 'lucide-react';
 import useApi from '../../useApi/useApi';
 
-export const UpdateForm = ({ userId, setActive, active }) => {
-  const { addData, updateData, findData } = useApi();
+export const UpdateForm = ({user, userId, setActive, active, onUpdate }) => {
+  const { addData, updateData, findData, UploadImage } = useApi();
   const [formData, setFormData] = useState({
     Name: '',
     Mail: '',
@@ -17,7 +17,7 @@ export const UpdateForm = ({ userId, setActive, active }) => {
     ProfessionalTitle: '',
     Status: 'Active',
     UserType: 'Regular User',
-    UserImage: null,
+    userImg: null,
     Currency:'',
     Language:''
   });
@@ -46,6 +46,7 @@ export const UpdateForm = ({ userId, setActive, active }) => {
             UserType: userData.UserType || 'Regular User',
             Currency:userData.Currency,
             Language:userData.Language,
+            UserImage: userData.UserImage || null
 
           }));
         }
@@ -63,32 +64,60 @@ export const UpdateForm = ({ userId, setActive, active }) => {
     const { name, value } = e.target;
     setFormData(prevState => ({ ...prevState, [name]: value }));
   };
+  
 
+  const fileInputRef = useRef(null);
+  const handleImageUpload = async () => {
+    if (!fileInputRef.current || !fileInputRef.current.files || !fileInputRef.current.files[0]) {
+      console.debug("No file selected for upload.");
+      return;
+    }
+  
+    const imageData = new FormData(); 
+    imageData.append('image', fileInputRef.current.files[0]);
+  
+    try {
+      const response = await UploadImage('user/upload', imageData);
+      if (response && response.data) {
+        setFormData(prevState => ({ ...prevState, UserImage: response.data.UserImage || '' }));
+        console.debug("Image uploaded successfully");
+      } else {
+        console.debug("Unexpected response format:", response);
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  };
   
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const formPayload = new FormData();
     
-    Object.keys(formData).forEach(key => {
-      if (formData[key] !== null) {
-        formPayload.append(key, formData[key]);
-      }
-    });
-
+    await handleImageUpload(); // Await image upload before sending form
+    const formPayload = new FormData();
+    for (const [key, value] of Object.entries(formData)) {
+      formPayload.append(key, value);
+    }
+    
     try {
       if (userId) {
         const updatedUser = await updateData('user/update', userId, formPayload);
         console.log('User data updated successfully', updatedUser);
+        onUpdate(formData);
+        if(updatedUser) setActive(0);
       } else {
         await addData('user/add', formPayload);
         console.log('New user added successfully');
       }
     } catch (error) {
       console.error('Error submitting data:', error);
+      if (error.response && error.response.data) {
+        console.error('Error response:', error.response.data);
+      }
     }
   };
+  
+
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]; // Get the uploaded file
@@ -113,15 +142,23 @@ export const UpdateForm = ({ userId, setActive, active }) => {
       ProfessionalTitle: '',
       Status: 'Active',
       UserType: 'Regular User',
-      UserImage: null,
+      userImg: null,
     });
     setFileName('No file chosen');
   };
+
+  const[userImg, setUserImg]=useState([])
   const handleCancel=()=>{
     setActive(0)
     console.log(active)
 
   }
+
+  const handleImageChange = (event) => {
+    const files = Array.from(event.target.files);
+    setUserImg((prevImages) => [...prevImages, ...files]);
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -233,7 +270,7 @@ export const UpdateForm = ({ userId, setActive, active }) => {
                 <Upload className="h-5 w-5 inline-block mr-2" />
                 Choose File
               </label>
-              <input id="UserImage" name="UserImage" type="file" onChange={handleFileChange} className="sr-only" />
+              <input ref={fileInputRef} id="UserImage" name="UserImage" type="file" onChange={handleFileChange} className="sr-only" />
               <span className="ml-3 text-sm text-gray-500">{fileName}</span>
             </div>
           </div>
@@ -257,6 +294,7 @@ export const UpdateForm = ({ userId, setActive, active }) => {
     </div>
   );
 };
+
 
 
 

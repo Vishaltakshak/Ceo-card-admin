@@ -39,7 +39,7 @@ export default function ServiceUpdateForm({
       await updateData("subnav/link/update", navbar._id, formData); // Update with correct endpoint
       console.log("Category updated successfully");
       onUpdate(formData);
-      setActive(0); // Close the form after submission
+      setActive(0); 
     } catch (error) {
       console.error("Error updating category:", error);
     }
