@@ -21,12 +21,10 @@ export default function AddNewService({ page, showForm, }) {
     BannerIMG: '',
     ServiceIMG: '',
   });
-const [subcat, setsubcat]= useState({
-  SubCategoryName: '',
-})
-const [maincat, setmaincat]= useState({
-  CategoryName: '',
-})
+const [subcat, setsubcat]= useState([])
+const [maincat, setmaincat]= useState([
+  
+])
  useEffect(()=>{
   getSubCat()},[])
   const getSubCat = async () => {
@@ -34,10 +32,11 @@ const [maincat, setmaincat]= useState({
       const response = await fetchData("Nav/hover/view");
       const data = response.data.Data.map((item) => item.SubCategoryName);
       const fetchmaincat = await fetchData("NavBar/view");
-      console.log(fetchmaincat)
-      const maincat = fetchmaincat.data.Data.map((item) => item.CategoryName);
+      const mainCatData = fetchmaincat.data.Data
+      const maincat = mainCatData.map((item) => item.CategoryName);
       setsubcat(data || []);
       setmaincat(maincat || []);
+      console.log("maincat", maincat)
       console.log("add new subcat", subcat)
      
     } catch (err) {

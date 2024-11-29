@@ -1,164 +1,114 @@
-import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Upload, Users } from 'lucide-react';
-import useApi from '../../useApi/useApi';
-
-export const UpdateForm = ({user, userId, setActive, active, onUpdate }) => {
+import { useState, useEffect, useRef } from "react";
+import { ChevronDown, Upload, Users } from "lucide-react";
+import useApi from "../../useApi/useApi";
+import formatDate from "../../utility/FormatDate";
+export const UpdateForm = ({ userId, setActive, onUpdate }) => {
   const { addData, updateData, findData, UploadImage } = useApi();
   const [formData, setFormData] = useState({
-    Name: '',
-    Mail: '',
-    Password: '',
-    ConfirmPassword: '',
-    MobileNumber: '',
-    Role: 'User',
-    DOB: '',
-    LinkedinProfile: '',
-    CompanyName: '',
-    ProfessionalTitle: '',
-    Status: 'Active',
-    UserType: 'Regular User',
-    userImg: null,
-    Currency:'',
-    Language:''
+    Name: "",
+    Mail: "",
+    Password: "",
+    ConfirmPassword: "",
+    MobileNumber: "",
+    Role: "User",
+    DOB: "",
+    LinkedinProfile: "",
+    CompanyName: "",
+    ProfessionalTitle: "",
+    Status: "Active",
+    UserType: "Regular User",
+    UserImage: null,
+    Currency: "USD",
+    Language: "English",
   });
-
-  const [fileName, setFileName] = useState('No file chosen');
+  const [fileName, setFileName] = useState("No file chosen");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await findData(`user/view`, userId);
-        if (response && response.data && response.data.Users) {
+        const response = await findData("user/view", userId);
+        if (response?.data?.Users) {
           const userData = response.data.Users;
-          console.log('Fetched user data:', userData);
-          
-          setFormData(prevState => ({
+          setFormData((prevState) => ({
             ...prevState,
-            Name: userData.Name || '',
-            Mail: userData.Mail || '',
-            MobileNumber: userData.MobileNumber || '',
-            Role: userData.Role || 'User',
-            DOB: userData.DOB || '',
-            LinkedinProfile: userData.LinkedinProfile || '',
-            CompanyName: userData.CompanyName || '',
-            ProfessionalTitle: userData.ProfessionalTitle || '',
-            Status: userData.Status || 'Active',
-            UserType: userData.UserType || 'Regular User',
-            Currency:userData.Currency,
-            Language:userData.Language,
-            UserImage: userData.UserImage || null
-
+            Name: userData.Name || "",
+            Mail: userData.Mail || "",
+            MobileNumber: userData.MobileNumber || "",
+            Role: userData.Role || "User",
+            DOB: formatDate(userData.DOB), // Format DOB here
+            LinkedinProfile: userData.LinkedinProfile || "",
+            CompanyName: userData.CompanyName || "",
+            ProfessionalTitle: userData.ProfessionalTitle || "",
+            Status: userData.Status || "Active",
+            UserType: userData.UserType || "Regular User",
+            Currency: userData.Currency,
+            Language: userData.Language,
+            UserImage: userData.UserImage || null,
           }));
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
 
-    if (userId) {
-      fetchUserData();
-    }
+    if (userId) fetchUserData();
   }, [userId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({ ...prevState, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
 
-  const fileInputRef = useRef(null);
-  const handleImageUpload = async () => {
-    if (!fileInputRef.current || !fileInputRef.current.files || !fileInputRef.current.files[0]) {
-      console.debug("No file selected for upload.");
-      return;
-    }
-  
-    const imageData = new FormData(); 
-    imageData.append('image', fileInputRef.current.files[0]);
-  
-    try {
-      const response = await UploadImage('user/upload', imageData);
-      if (response && response.data) {
-        setFormData(prevState => ({ ...prevState, UserImage: response.data.UserImage || '' }));
-        console.debug("Image uploaded successfully");
-      } else {
-        console.debug("Unexpected response format:", response);
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, UserImage: file }));
+      setFileName(file.name);
     }
   };
-  
+
+  const validateForm = () => {
+    if (!formData.Name || !formData.Mail || !formData.Role) {
+      alert("Please fill out all required fields.");
+      return false;
+    }
+   
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    await handleImageUpload(); // Await image upload before sending form
-    const formPayload = new FormData();
-    for (const [key, value] of Object.entries(formData)) {
-      formPayload.append(key, value);
-    }
-    
+    if (!validateForm()) return;
+
     try {
+      let uploadedImageUrl = formData.UserImage;
+
+      if (formData.UserImage && typeof formData.UserImage !== "string") {
+        const imageData = new FormData();
+        imageData.append("image", formData.UserImage);
+        const response = await UploadImage("user/upload", imageData);
+        if (response?.data?.UserImage) {
+          uploadedImageUrl = response.data.UserImage;
+        }
+      }
+
+      const payload = { ...formData, UserImage: uploadedImageUrl };
+
       if (userId) {
-        const updatedUser = await updateData('user/update', userId, formPayload);
-        console.log('User data updated successfully', updatedUser);
-        onUpdate(formData);
-        if(updatedUser) setActive(0);
+        await updateData("user/update", userId, payload);
+        onUpdate(payload);
+        setActive(0);
       } else {
-        await addData('user/add', formPayload);
-        console.log('New user added successfully');
+        await addData("user/add", payload);
       }
-    } catch (error) {
-      console.error('Error submitting data:', error);
-      if (error.response && error.response.data) {
-        console.error('Error response:', error.response.data);
-      }
+    } catch (err) {
+      setError("An error occurred while submitting the form.");
+      console.error(err);
     }
   };
-  
 
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]; // Get the uploaded file
-    if (file) {
-      setFormData(prevState => ({ ...prevState, UserImage: file }));
-      setFileName(file.name); // Update the filename displayed
-    }
-  };
-  
-
-  const handleReset = () => {
-    setFormData({
-      Name: '',
-      Mail: '',
-      Password: '',
-      ConfirmPassword: '',
-      MobileNumber: '',
-      Role: 'User',
-      DOB: '',
-      LinkedinProfile: '',
-      CompanyName: '',
-      ProfessionalTitle: '',
-      Status: 'Active',
-      UserType: 'Regular User',
-      userImg: null,
-    });
-    setFileName('No file chosen');
-  };
-
-  const[userImg, setUserImg]=useState([])
-  const handleCancel=()=>{
-    setActive(0)
-    console.log(active)
-
-  }
-
-  const handleImageChange = (event) => {
-    const files = Array.from(event.target.files);
-    setUserImg((prevImages) => [...prevImages, ...files]);
-  };
-
+  const handleCancel = () => setActive(0);
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -270,7 +220,7 @@ export const UpdateForm = ({user, userId, setActive, active, onUpdate }) => {
                 <Upload className="h-5 w-5 inline-block mr-2" />
                 Choose File
               </label>
-              <input ref={fileInputRef} id="UserImage" name="UserImage" type="file" onChange={handleFileChange} className="sr-only" />
+              <input  id="UserImage" name="UserImage" type="file" onChange={handleFileChange} className="sr-only" />
               <span className="ml-3 text-sm text-gray-500">{fileName}</span>
             </div>
           </div>
@@ -280,7 +230,7 @@ export const UpdateForm = ({user, userId, setActive, active, onUpdate }) => {
                     className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
               Cancel
             </button>
-            <button type="button" onClick={handleReset}
+            <button type="button" onClick={handleChange}
                     className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
               Reset
             </button>

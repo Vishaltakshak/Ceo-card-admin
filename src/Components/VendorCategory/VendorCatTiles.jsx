@@ -17,6 +17,7 @@ const VendorCatTiles = () => {
       const response = await fetchData('NavBar/view');
       setUsers(response.data.Data || []);
       console.log('navbar',users)
+      console.log("navbar is ", response.data.Data);
     } catch (err) {
       console.error("Error fetching users:", err);
     }
