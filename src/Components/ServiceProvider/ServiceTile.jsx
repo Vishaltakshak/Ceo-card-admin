@@ -24,9 +24,9 @@ const ServiceTile = ({onUpdate, service, DeleteData }) => {
       {active === 0 ? ( 
         <>
           <div className="flex items-center space-x-6">
-            <span className="text-lg font-semibold text-gray-800 whitespace-nowrap">{service.ProviderName}</span>
+            <span className="w-6.5 text-sm font-semibold text-gray-800 whitespace-normal">{service.ProviderName}</span>
             <span className="text-sm text-gray-600 whitespace-nowrap">{service.ServiceCatergory}</span>
-            <span className="text-sm text-gray-600 whitespace-nowrap">{service.SubCategory}</span>
+            <span className=" text-sm text-gray-600 whitespace-normal">{service.SubCategory}</span>
           </div>
         
           <div className="flex items-center space-x-6">
@@ -39,7 +39,7 @@ const ServiceTile = ({onUpdate, service, DeleteData }) => {
               href={service.WebsiteURl} // Use service.WebsiteURl for dynamic link
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:underline truncate max-w-[200px]"
+              className="text-sm text-blue-600 hover:underline truncate max-w-[150px]"
             >
               {service.WebsiteURl}
             </a>

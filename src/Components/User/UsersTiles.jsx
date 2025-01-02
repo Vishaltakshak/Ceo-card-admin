@@ -22,7 +22,7 @@ const UserManagement = () => {
   }
   const DeleteData = async (id) => {
     try {
-        await deleteData('Nav/hover/delete', id); // Await the delete operation
+        await deleteData('user/delete', id); // Await the delete operation
         setUsers(prevUsers => prevUsers.filter(user => user._id !== id)); // Filter out the deleted user
     } catch (err) {
         console.error("Error deleting user:", err);

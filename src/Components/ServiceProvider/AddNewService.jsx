@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useApi from '../../useApi/useApi';
 
 export default function AddNewService({ page, showForm, }) {
-  const { addData, fetchData } = useApi();
+  const { addData, fetchData, UploadImage } = useApi();
   const [formData, setFormData] = useState({
     ProviderName: '',
     ContactMail: '',
@@ -15,11 +15,12 @@ export default function AddNewService({ page, showForm, }) {
     CardTitle: '',
     CardDescription: '',
     Offer: '',
-    Latitude: '',
-    Longitude: '',
+    // Latitude: '',
+    // Longitude: '',
     ProviderStatus: 'Active',
     BannerIMG: '',
     ServiceIMG: '',
+    // MapUrl: '',
   });
 const [subcat, setsubcat]= useState([])
 const [maincat, setmaincat]= useState([
@@ -47,7 +48,27 @@ const [maincat, setmaincat]= useState([
     e.preventDefault();
 
     try {
-      await addData('subnav/link/add', formData); // Update with correct endpoint
+      try {
+        if(!formData.BannerIMG||!formData.ServiceIMG){
+          alert("image not present")
+        }
+        var ImgUrl=[];
+        const imgData = new FormData;
+        imgData.append("BannerIMG", formData.BannerIMG);
+imgData.append("ServiceIMG", formData.ServiceIMG);
+
+        const response = await UploadImage("subnav/link/service/img/upload", imgData)
+        console.log("service images", response.urls)
+        ImgUrl=response.urls;
+
+        
+      } catch (error) {
+        throw new error
+        
+      }
+      const serviceData = {...formData, BannerIMG: ImgUrl[0], ServiceIMG:ImgUrl[1]}
+      
+      await addData('subnav/link/add', serviceData); 
       console.log('Category updated successfully');
       // onUpdate(formData);
       showForm(0); // Close the form after submission
@@ -69,21 +90,46 @@ const [maincat, setmaincat]= useState([
       CardTitle: '',
       CardDescription: '',
       Offer: '',
-      Latitude: '',
-      Longitude: '',
+      // Latitude: '',
+      // Longitude: '',
       ProviderStatus: 'Active',
       BannerIMG: '',
       ServiceIMG: '',
+      // MapUrl: '',
     });
   };
 
   const [bannerImages, setBannerImages] = useState([]);
+  
   const [serviceImages, setServiceImages] = useState([]);
 
-  const handleImageUpload = (event, setImages) => {
-    const files = Array.from(event.target.files);
-    setImages(prevImages => [...prevImages, ...files]);
-  };
+ const handleBannerImg=(e)=>{
+  const file = e.target.files[0];
+  if(file.size>15*1024*1024){
+    alert("File Size Too Larger");
+  }
+  setBannerImages([file]);
+  setFormData(prevdata=>({...prevdata,
+    BannerIMG:file
+  }))
+  
+ }
+
+
+
+
+ const handleServiceImg=(e)=>{
+  const file= e.target.files[0];
+  if(file.size>15*1024*1024){
+    alert("File Size Too Larger")
+
+  }
+  setServiceImages([file]);
+  setFormData(e=>({...e,ServiceIMG:file}))
+ }
+
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -154,17 +200,30 @@ const [maincat, setmaincat]= useState([
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   />
-                )}
+                )
+                }
               </div>
             );
           })}
         </div>
+        {/* <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">MapUrl</label>
+          <input
+              type="url"
+              id="MapUrl"
+              name="MapUrl"
+              value={formData.MapUrl}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+
+        </div> */}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Banner Images/Videos</label>
           <input
             type="file"
-            onChange={(e) => handleImageUpload(e, setBannerImages)}
+            onChange={handleBannerImg}
             multiple
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
@@ -179,7 +238,7 @@ const [maincat, setmaincat]= useState([
           <label className="block text-sm font-medium text-gray-700 mb-1">Service Images</label>
           <input
             type="file"
-            onChange={(e) => handleImageUpload(e, setServiceImages)}
+            onChange={handleServiceImg}
             multiple
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />

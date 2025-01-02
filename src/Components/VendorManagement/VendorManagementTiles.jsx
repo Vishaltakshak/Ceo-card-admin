@@ -5,7 +5,7 @@ import useApi from '../../useApi/useApi';
 import VendorManagementTile from './VendorManagementTile';
 
 const VendorManagementTiles = () => {
-  const { data: apiUsers, loading, error, fetchData, deleteData} = useApi();
+  const { data:  loading, error, fetchData, deleteData} = useApi();
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -22,13 +22,23 @@ const VendorManagementTiles = () => {
     }
   }
 
+
+  const DeleteVendor=(id)=>{
+    try {
+      
+      deleteData("Vendor/delete", id)
+      setUsers(prevUsers => prevUsers.filter(user => user._id !== id))
+    } catch (error) {
+      console.log("error deleting the vendor",error)
+      
+    }
+  }
   const handleUserUpdate = (updatedUser) => {
     setUsers(prevUsers => prevUsers.map(user => 
       user._id === updatedUser._id ? updatedUser : user
     ));
   }
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
@@ -51,6 +61,7 @@ const VendorManagementTiles = () => {
             key={user._id} 
             user={user} 
             onUpdate={handleUserUpdate}  
+            DeleteVendor={DeleteVendor}
           />
         ))
       )}

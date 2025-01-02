@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+/* eslint-disable react/prop-types */
+import { useState, useEffect } from "react";
 import { ChevronDown, Upload, Users } from "lucide-react";
 import useApi from "../../useApi/useApi";
 import formatDate from "../../utility/FormatDate";
 export const UpdateForm = ({ userId, setActive, onUpdate }) => {
   const { addData, updateData, findData, UploadImage } = useApi();
+  const [selectedFile, setSelectedFile] = useState(null);
   const [formData, setFormData] = useState({
     Name: "",
     Mail: "",
@@ -62,38 +64,67 @@ export const UpdateForm = ({ userId, setActive, onUpdate }) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+    if (file && file.size > 5 * 1024 * 1024) { // 5MB limit
+      alert('File size exceeds the limit of 5MB.');
+      return;
+    }
     if (file) {
-      setFormData((prev) => ({ ...prev, UserImage: file }));
+      setSelectedFile(file);
       setFileName(file.name);
+      // Create a preview URL for the image
+      setFormData(prev => ({
+        ...prev,
+        UserImage: URL.createObjectURL(file)
+      }));
     }
   };
+  
 
-  const validateForm = () => {
-    if (!formData.Name || !formData.Mail || !formData.Role) {
-      alert("Please fill out all required fields.");
-      return false;
-    }
+  // const validateForm = () => {
+  //   if (!formData.Name || !formData.Mail || !formData.Role) {
+  //     alert("Please fill out all required fields.");
+  //     return false;
+  //   }
    
-    return true;
-  };
+  //   return true;
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    // if (!validateForm()) return;
 
     try {
       let uploadedImageUrl = formData.UserImage;
 
-      if (formData.UserImage && typeof formData.UserImage !== "string") {
+      // Handle image upload if there's a new file selected
+      if (selectedFile) {
         const imageData = new FormData();
-        imageData.append("image", formData.UserImage);
-        const response = await UploadImage("user/upload", imageData);
-        if (response?.data?.UserImage) {
-          uploadedImageUrl = response.data.UserImage;
+        imageData.append("image", selectedFile);
+        
+        console.log("Uploading image:", selectedFile);
+        console.log(imageData);
+        for (let [key, value] of  imageData.entries()) {
+          console.log(key, value);
+        }
+        try {
+          const response = await UploadImage("user/upload", imageData, userId);
+          if (response?.data?.UserImage) {
+            uploadedImageUrl = response.data.UserImage;
+          } else {
+            throw new Error("Image upload failed");
+          }
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          setError("Failed to upload image. Please try again.");
+          return;
         }
       }
 
-      const payload = { ...formData, UserImage: uploadedImageUrl };
+      // Prepare the final payload
+      const payload = {
+        ...formData,
+        UserImage: uploadedImageUrl
+      };
 
       if (userId) {
         await updateData("user/update", userId, payload);
@@ -101,15 +132,37 @@ export const UpdateForm = ({ userId, setActive, onUpdate }) => {
         setActive(0);
       } else {
         await addData("user/add", payload);
+        setActive(0);
       }
     } catch (err) {
       setError("An error occurred while submitting the form.");
-      console.error(err);
+      console.error("Form submission error:", err);
     }
   };
 
+  
   const handleCancel = () => setActive(0);
-
+  const handleReset = () => {
+    setFormData({
+      Name: "",
+      Mail: "",
+      Password: "",
+      ConfirmPassword: "",
+      MobileNumber: "",
+      Role: "User",
+      DOB: "",
+      LinkedinProfile: "",
+      CompanyName: "",
+      ProfessionalTitle: "",
+      Status: "Active",
+      UserType: "Regular User",
+      UserImage: null,
+      Currency: "USD",
+      Language: "English",
+    });
+    setFileName("No file chosen");
+  };
+  
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-full mx-auto bg-white shadow-md rounded-lg overflow-hidden">
@@ -118,7 +171,7 @@ export const UpdateForm = ({ userId, setActive, onUpdate }) => {
           <h1 className="text-xl font-bold">User Management</h1>
           <span className="ml-2 text-sm">Add / Edit User</span>
         </div>
-        <form className="p-6" onSubmit={handleSubmit}>
+        <form className="p-6" onSubmit={handleSubmit} encType="multipart/form-data"> 
           <h2 className="text-lg font-semibold mb-6">Enter User Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
@@ -225,12 +278,15 @@ export const UpdateForm = ({ userId, setActive, onUpdate }) => {
             </div>
           </div>
 
+        
+
+
           <div className="mt-8 flex justify-end space-x-4">
           <button type="button" onClick={handleCancel}
                     className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
               Cancel
             </button>
-            <button type="button" onClick={handleChange}
+            <button type="button" onClick={handleReset}
                     className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
               Reset
             </button>

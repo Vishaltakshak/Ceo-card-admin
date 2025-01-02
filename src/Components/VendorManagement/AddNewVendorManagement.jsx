@@ -2,7 +2,7 @@ import {  useState } from 'react';
 import useApi from '../../useApi/useApi';
 
 export default function AddNewVendorManagementForm({ page, showForm }) {
-  const { addData } = useApi();
+  const { addData, UploadImage } = useApi();
 
   const [formData, setFormData] = useState({
     VendorName: '',
@@ -17,7 +17,7 @@ export default function AddNewVendorManagementForm({ page, showForm }) {
     VendorWebsite: '',
     VendorRating: '',
     VendorStatus: 'Active',
-    VendorOpenHours: {},
+    VendorOpenHours: '',
     VendorPricingInfo: {
       Currency: '',
       PriceRange: {
@@ -25,11 +25,7 @@ export default function AddNewVendorManagementForm({ page, showForm }) {
         Max: 0,
       },
     },
-    VendorLocationCoordinates: {
-      latitude: 0,
-      longitude: 0,
-      _id: '',
-    },
+    MapUrl:''
   });
 
 
@@ -45,7 +41,7 @@ const handleUserUpdate = async( updatedUser) => {
         ContactNumber,
         VendorAddress,
         VendorAmenities,
-        // ... other fields
+       
         VendorImages,
         VendorDescription,
         VendorWebsite,
@@ -55,7 +51,7 @@ const handleUserUpdate = async( updatedUser) => {
 
         VendorOpenHours,
         VendorPricingInfo,
-        VendorLocationCoordinates,
+        MapUrl
       } = updatedUser; // Destructure relevant data
   
       const sanitizedData = {
@@ -73,7 +69,7 @@ const handleUserUpdate = async( updatedUser) => {
         VendorStatus,
         VendorOpenHours,
         VendorPricingInfo,
-        VendorLocationCoordinates,
+        MapUrl,
       };
       try {
         await addData('Vendor/add', sanitizedData);
@@ -89,9 +85,33 @@ const handleUserUpdate = async( updatedUser) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await addData('Vendor/add', user._id, formData);
+      var ImgUrl =null
+      try {
+        const ImageData = new FormData;
+        if(!formData.VendorImages){
+          console.log("no image file")
+        }else{
+          ImageData.append("image",formData.VendorImages)
+        }
+      const response = await UploadImage('Vendor/upload',ImageData)
+      console.log(response)
+     
+      if (response?.fileUrl) {
+        ImgUrl = await response.fileUrl;
+        console.log("img urk",ImgUrl)
+      } else {
+        throw new Error('Failed to retrieve uploaded image URL');
+      }
+        
+      } catch (error) {
+        console.log(error)
+        
+      }
+    
+      const formPayLoad ={...formData, VendorImages:ImgUrl} 
+      await addData('Vendor/add', formPayLoad);
       console.log('Vendor updated successfully');
-      console.log("formdata is", formData)
+      console.log("formdata is", formPayLoad)
       
       showForm(0);
     } catch (error) {
@@ -106,38 +126,60 @@ const handleUserUpdate = async( updatedUser) => {
     setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
-  const handleOpenHoursChange = (day, value) => {
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]; 
+  
+    if (!file) {
+      alert("Please add a photo");
+      return;
+    }
+  
+
+    const maxSizeInBytes = 15 * 1024 * 1024; 
+    if (file.size > maxSizeInBytes) {
+      alert("Photo is too large. Must be less than 15MB.");
+      return;
+    }
     setFormData((prevState) => ({
       ...prevState,
-      VendorOpenHours: {
-        ...prevState.VendorOpenHours,
-        [day]: value,
-      },
+      VendorImages: file,
     }));
   };
+  
 
   const handlePricingChange = (field, value) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      VendorPricingInfo: {
-        ...prevState.VendorPricingInfo,
-        [field]: field === 'Currency' ? value : { 
-          ...prevState.VendorPricingInfo.PriceRange,
-          [field]: Number(value),
-        },
-      },
-    }));
+    setFormData((prevState) => {
+      if (field === 'Currency') {
+        // Update Currency directly
+        return {
+          ...prevState,
+          VendorPricingInfo: {
+            ...prevState.VendorPricingInfo,
+            Currency: value,
+          },
+        };
+      } else {
+        // Update PriceRange fields (Min or Max)
+        return {
+          ...prevState,
+          VendorPricingInfo: {
+            ...prevState.VendorPricingInfo,
+            PriceRange: {
+              ...prevState.VendorPricingInfo.PriceRange,
+              [field]: Number(value), // Ensure the value is converted to a number
+            },
+          },
+        };
+      }
+    });
   };
+  
 
-  const handleLocationChange = (field, value) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      VendorLocationCoordinates: {
-        ...prevState.VendorLocationCoordinates,
-        [field]: field === '_id' ? value : Number(value),
-      },
-    }));
-  };
+
+
+
+ 
 
   const handleCancel = () => {
     showForm(0);
@@ -227,7 +269,7 @@ const handleUserUpdate = async( updatedUser) => {
          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
            <div>
              <label htmlFor="VendorRating" className="block text-sm font-medium text-gray-700 mb-1">Vendor Rating</label>
-             <input type="number" id="VendorRating" name="VendorRating" value={formData.VendorRating} onChange={handleChange} min="0" max="5" step="0.1" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
+             <input type="string" id="VendorRating" name="VendorRating" value={formData.VendorRating} onChange={handleChange} min="0" max="5" step="0.1" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
            </div>
            <div>
              <label htmlFor="VendorImages" className="block text-sm font-medium text-gray-700 mb-1">Vendor Images</label>
@@ -235,29 +277,28 @@ const handleUserUpdate = async( updatedUser) => {
                <label htmlFor="VendorImages" className="cursor-pointer bg-white px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary">
                  Choose Files
                </label>
-               <span className="ml-3 text-sm text-gray-500">{formData.VendorImages ? formData.VendorImages : 'No file chosen'}</span>
-               <input type="file" id="VendorImages" name="VendorImages" onChange={handleChange} multiple className="hidden" />
+               <span className="ml-3 text-sm text-gray-500">
+                {formData.VendorImages instanceof File ? formData.VendorImages.name : 'Choose file'}
+              </span>
+               <input type="file" id="VendorImages" name="VendorImages" onChange={handleImageUpload} className="hidden" />
              </div>
            </div>
         </div>
 
         {/* Open Hours Section */}
         <div className="mb-6">
-          <h2 className="text-xl font-bold mb-4">Vendor Open Hours</h2>
-          {Object.entries(formData.VendorOpenHours).map(([day, hours]) => (
-            <div key={day} className="flex items-center space-x-4 mb-2">
-              <label htmlFor={day} className="w-24">{day}</label>
-              <input
-                type="text"
-                id={day}
-                value={hours}
-                onChange={(e) => handleOpenHoursChange(day, e.target.value)}
-                className="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder={`Hours for ${day}`}
-              />
-            </div>
-          ))}
+            <h2 className="text-xl font-bold mb-4">Vendor Open Hours</h2>
+            <textarea
+              id="VendorOpenHours"
+              name="VendorOpenHours"
+              value={formData.VendorOpenHours}
+              onChange={handleChange}
+              rows={3}
+              placeholder="Enter open hours (e.g., Monday to Friday: 9 AM - 5 PM)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
         </div>
+
 
         {/* Pricing Info Section */}
         <div className="mb-6">
@@ -291,24 +332,18 @@ const handleUserUpdate = async( updatedUser) => {
 
         {/* Location Coordinates Section */}
         <div className='mb-6'>
-          <h2 className='text-xl font-bold mb-4'>Location Coordinates</h2>
+          <h2 className='text-xl font-bold mb-4'>Map Url</h2>
           {/* Latitude Input */}
           <input
-            type='number'
-            placeholder='Latitude'
-            value={formData.VendorLocationCoordinates.latitude}
-            onChange={(e) => handleLocationChange('latitude', e.target.value)}
+            name='MapUrl'
+            type='string'
+            placeholder='Url'
+            value={formData.MapUrl}
+            onChange={handleChange}
             className='flex-grow px-3 py-2 border border-gray-300 rounded-md'
           />
-          {/* Longitude Input */}
-          <input
-            type='number'
-            placeholder='Longitude'
-            value={formData.VendorLocationCoordinates.longitude}
-            onChange={(e) => handleLocationChange('longitude', e.target.value)}
-            className='flex-grow px-3 py-2 border border-gray-300 rounded-md'
-          />
-        </div>
+          </div>
+         
         <div>
           <label htmlFor="VendorStatus" className="block text-sm font-medium text-gray-700 mb-1">Vendor Status</label>
           <select id="VendorStatus" name="VendorStatus" value={formData.VendorStatus} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary">

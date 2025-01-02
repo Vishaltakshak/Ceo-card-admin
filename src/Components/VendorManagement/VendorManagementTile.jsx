@@ -2,17 +2,17 @@ import React,{useState} from 'react';
 import { Edit, Trash } from 'lucide-react';
 import VendorManagementUpdateForm from './VendorManagementUpdate';
 
-const VendorManagementTile = ({user, onUpdate, DeleteData}) => {
+const VendorManagementTile = ({user, onUpdate, DeleteVendor}) => {
   const [active, setActive] = useState(0);
 
   const handleDelete = () => {
-    DeleteData(user._id); // Use service._id instead of subCat._id
+    DeleteVendor(user._id); 
     console.log('Delete service:', user);
   };
    
   const handleUpdate = (updatedService) => {
-    onUpdate(updatedService); // Call the update function passed as a prop
-    setActive(0); // Reset active state after update
+    onUpdate(updatedService); 
+    setActive(0);
   };
 
   const isActive = user.VendorStatus === "Active";

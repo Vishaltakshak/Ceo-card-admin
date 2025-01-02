@@ -1,8 +1,9 @@
+/* eslint-disable react/prop-types */
 
 
 
 
-import  { useState, useRef } from 'react';
+import  { useState, } from 'react';
 import {  ChevronDown, Upload, Users } from 'lucide-react';
 import useApi from '../../useApi/useApi';
 
@@ -71,22 +72,67 @@ export default function AddNewForm({ setForm }) {
     return Object.keys(newErrors).length === 0;
   };
 
+
+
+
+
+
+
+const handleImgChange=(e)=>{
+  const file = e.target.files[0]
+  if(!file){
+    alert("file not uploaded")
+  }
+  if(!file.size>10*1024*1024){
+    alert("file size too big")
+  }
+  setFormData(prevState=>({
+    ...prevState,
+    UserImage:file
+
+  }))
+  setFileName(file.name)
+
+}
+
+
+
+
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setBackendError('');
 
     if (!validateForm()) {
-      console.log('Form validation failed');
+     alert('Form validation failed');
       return;
     }
-
+    var ImgUrl= null;
     try {
-      let imageUrl = null;
-      if (fileInputRef.current?.files[0]) {
-        imageUrl = await handleImageUpload();
+      const ImageData = new FormData;
+      if(!formData.UserImage){
+        console.log("no image file")
+      }else{
+        ImageData.append("image",formData.UserImage)
       }
+      try {
+        const response = await UploadImage("user/upload",ImageData)
       
-      const formPayload = { ...formData, UserImage: imageUrl };
+        if (response?.fileUrl) {
+          ImgUrl = await response.fileUrl;
+          console.log("img urk",ImgUrl)
+        } else {
+          throw new Error('Failed to retrieve uploaded image URL');
+        }
+        
+      } catch (error) {
+        console.log(error)
+        
+      }
+
+      
+      const formPayload = { ...formData, UserImage: ImgUrl};
 
       const response = await addData('user/add', formPayload);
       
@@ -103,6 +149,8 @@ export default function AddNewForm({ setForm }) {
       setBackendError(`Error adding user: ${error.message}`);
     }
   };
+
+  const handleCancel = () => setForm(0);
   const handleReset = () => {
     setFormData({
       Name: '',
@@ -126,85 +174,39 @@ export default function AddNewForm({ setForm }) {
 
 
 
-  const fileInputRef = useRef(null);
-
-
-const handleImageUpload = async () => {
-  if (!formData.UserImage) {
-      console.log("No file selected for upload");
-      return null;
-  }
-
-  // Create a new FormData instance for upload
-  const imageData = new FormData();
-  imageData.append('image', formData.UserImage);
-
-  // Debug logs
-  console.log("File being uploaded:", formData.UserImage);
-  console.log("FormData entries:");
-  for (let pair of imageData.entries()) {
-      console.log(pair[0], pair[1]);
-  }
-
-  try {
-      const response = await UploadImage('user/upload', imageData);
-      console.log("Upload response:", response);
-
-      if (!response?.data?.imageUrl) {
-          throw new Error('No image URL received from server');
-      }
-
-      return response.data.imageUrl;
-  } catch (error) {
-      console.error("Error uploading image:", error);
-      throw error;
-  }
-};
-
-
-  const handleCancel = () => {
-    setForm(0);
-  };
-
-  // const handleFileChange = (e) => {
-  //   const file = e.target.files[0];
-  //   console.log(file)
-  //   setFormData(prevState => ({ ...prevState, UserImage: file }));
-  //   setFileName(file ? file.name : 'No file chosen');
-  // }
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    console.log("Selected file:", file); // Debug log
+//   const handleFileChange = (e) => {
+//     const file = e.target.files[0];
+//     console.log("Selected file:", file); // Debug log
     
-    if (file) {
-        // Basic validation
-        if (!file.type.startsWith('image/')) {
-            alert('Please upload an image file');
-            return;
-        }
+//     if (file) {
+//         // Basic validation
+//         if (!file.type.startsWith('image/')) {
+//             alert('Please upload an image file');
+//             return;
+//         }
         
-        if (file.size > 5 * 1024 * 1024) {
-            alert('File size must be less than 5MB');
-            return;
-        }
+//         if (file.size > 5 * 1024 * 1024) {
+//             alert('File size must be less than 5MB');
+//             return;
+//         }
 
-        // Create new FormData instance specifically for the file
-        const fileFormData = new FormData();
-        fileFormData.append('image', file);
+//         // Create new FormData instance specifically for the file
+//         const fileFormData = new FormData();
+//         fileFormData.append('image', file);
         
-        // Log the FormData contents to verify
-        console.log("FormData content:", fileFormData.get('image'));
+//         // Log the FormData contents to verify
+//         console.log("FormData content:", fileFormData.get('image'));
         
-        setFormData(prevState => ({ 
-            ...prevState, 
-            UserImage: file  // Store the actual file object
-        }));
-        setFileName(file.name);
-    } else {
-        setFormData(prevState => ({ ...prevState, UserImage: null }));
-        setFileName('No file chosen');
-    }
-};
+//         setFormData(prevState => ({ 
+//             ...prevState, 
+//             UserImage: file  // Store the actual file object
+//         }));
+//         setFileName(file.name);
+//     } else {
+//         setFormData(prevState => ({ ...prevState, UserImage: null }));
+//         setFileName('No file chosen');
+//     }
+// };
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -310,7 +312,7 @@ const handleImageUpload = async () => {
                 <Upload className="h-5 w-5 inline-block mr-2" />
                 Choose File
               </label>
-              <input ref={fileInputRef} id="UserImage" name="UserImage" type="file"   onChange={handleFileChange} className="sr-only" />
+              <input id="UserImage" name="UserImage" type="file"   onChange={handleImgChange} className="sr-only" />
               <span className="ml-3 text-sm text-gray-500">{fileName}</span>
             </div>
           </div>

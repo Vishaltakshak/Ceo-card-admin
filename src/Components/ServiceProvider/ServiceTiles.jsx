@@ -34,8 +34,11 @@ const ServiceProviderTIles = () => {
   }
   const DeleteData = async (id) => {
     try {
-        await deleteData('subnav/link/delete', id); // Await the delete operation
-        setUsers(prevUsers => prevUsers.filter(user => user._id !== id)); // Filter out the deleted user
+        await deleteData('subnav/link/delete', id);
+        getSubCat() 
+        
+        // setUsers(prevUsers => prevUsers.filter(user => user._id !== id));
+       
     } catch (err) {
         console.error("Error deleting user:", err);
     }

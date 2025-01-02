@@ -11,7 +11,7 @@ export default function ServiceUpdateForm({
   onUpdate,
   services,
 }) {
-  const { findData, updateData, fetchData } = useApi();
+  const { findData, updateData, fetchData, UploadImage } = useApi();
   const [servie, setService] = useState([]);
   const [subCat, setSubCat] = useState([]);
   const [formData, setFormData] = useState({
@@ -26,24 +26,80 @@ export default function ServiceUpdateForm({
     CardTitle: "",
     CardDescription: "",
     Offer: "",
-    Latitude: "",
-    Longitude: "",
+    // Latitude: "",
+    // Longitude: "",
     Status: "Active",
     BannerIMG: "",
     ServiceIMG: "",
+    // MapUrl: "",
   });
-  const handleSubmit = async (e) => {
-    e.preventDefault();
 
-    try {
-      await updateData("subnav/link/update", navbar._id, formData); // Update with correct endpoint
-      console.log("Category updated successfully");
-      onUpdate(formData);
-      setActive(0); 
-    } catch (error) {
-      console.error("Error updating category:", error);
+
+
+
+  const [bannerImages, setBannerImages] = useState([]);
+  
+  const [serviceImages, setServiceImages] = useState([]);
+
+ const handleBannerImg=(e)=>{
+  const file = e.target.files[0];
+  if(file.size>15*1024*1024){
+    alert("File Size Too Larger");
+  }
+  setBannerImages([file]);
+  setFormData(prevdata=>({...prevdata,
+    BannerIMG:file
+  }))
+  
+ }
+
+
+ const handleServiceImg=(e)=>{
+  const file= e.target.files[0];
+  if(file.size>15*1024*1024){
+    alert("File Size Too Larger")
+
+  }
+  setServiceImages([file]);
+  setFormData(e=>({...e,ServiceIMG:file}))
+ }
+
+
+
+
+
+
+
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    // Get existing image URLs or use empty strings
+    let ImgUrl = [formData.BannerIMG, formData.ServiceIMG];
+
+    // Only upload if new files are selected
+    if (bannerImages.length > 0 || serviceImages.length > 0) {
+      const imgData = new FormData();
+      if (bannerImages[0]) imgData.append("BannerIMG", bannerImages[0]);
+      if (serviceImages[0]) imgData.append("ServiceIMG", serviceImages[0]);
+
+      const response = await UploadImage("subnav/link/service/img/upload", imgData);
+      ImgUrl = response.urls;
     }
-  };
+
+    const serviceData = {
+      ...formData,
+      BannerIMG: ImgUrl[0],
+      ServiceIMG: ImgUrl[1]
+    };
+
+    await updateData("subnav/link/update", navbar._id, serviceData);
+    onUpdate(formData);
+    setActive(0);
+  } catch (error) {
+    console.error("Error updating category:", error);
+  }
+};
 
   const handleReset = () => {
     setFormData({
@@ -58,16 +114,17 @@ export default function ServiceUpdateForm({
       CardTitle: "",
       CardDescription: "",
       Offer: "",
-      Latitude: "",
-      Longitude: "",
+      // Latitude: "",
+      // Longitude: "",
       Status: "Active",
       BannerIMG: "",
       ServiceIMG: "",
+      // MapUrl: "",
     });
   };
 
-  const [bannerImages, setBannerImages] = useState([]);
-  const [serviceImages, setServiceImages] = useState([]);
+  // const [bannerImages, setBannerImages] = useState([]);
+  // const [serviceImages, setServiceImages] = useState([]);
 
   useEffect(() => {
     const fetchServiceData = async () => {
@@ -99,10 +156,7 @@ export default function ServiceUpdateForm({
     fetchServiceData();
   }, [navbar]);
 
-  const handleImageUpload = (event, setImages) => {
-    const files = Array.from(event.target.files);
-    setImages((prevImages) => [...prevImages, ...files]);
-  };
+ 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -198,6 +252,18 @@ export default function ServiceUpdateForm({
             ))}
           </select>
         </div>
+        {/* <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">MapUrl</label>
+          <input
+              type="url"
+              id="MapUrl"
+              name="MapUrl"
+              value={formData.MapUrl}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+
+        </div> */}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -205,7 +271,8 @@ export default function ServiceUpdateForm({
           </label>
           <input
             type="file"
-            onChange={(e) => handleImageUpload(e, setBannerImages)}
+           
+            onChange={handleBannerImg}
             multiple
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
@@ -213,7 +280,7 @@ export default function ServiceUpdateForm({
             {bannerImages.map((file, index) => (
               <img
                 key={index}
-                src={URL.createObjectURL(file)}
+                src={formData.BannerIMG}
                 alt={`Banner ${index + 1}`}
                 className="w-24 h-18 object-cover rounded"
               />
@@ -227,7 +294,8 @@ export default function ServiceUpdateForm({
           </label>
           <input
             type="file"
-            onChange={(e) => handleImageUpload(e, setServiceImages)}
+            
+            onChange={handleServiceImg}
             multiple
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
@@ -235,7 +303,7 @@ export default function ServiceUpdateForm({
             {serviceImages.map((file, index) => (
               <img
                 key={index}
-                src={URL.createObjectURL(file)}
+                src={formData.ServiceIMG}
                 alt={`Service ${index + 1}`}
                 className="w-24 h-18 object-cover rounded"
               />
