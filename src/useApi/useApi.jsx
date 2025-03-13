@@ -19,9 +19,9 @@ const [err, setErr] = useState(null);
     
     const fetchData = async (endPoint, ) => {
         try {
-            const response = await axios.get(`${BaseUrl}/${endPoint}`);
+            const response = await axios.get(`${BaseUrl}/${endPoint}`,{withCredentials:true,});
             
-            console.log(response)
+            
             setData(response);
             return response;
         } catch (error) {
@@ -31,9 +31,9 @@ const [err, setErr] = useState(null);
     };
     const findData = async (endPoint, userId) => {
         try {
-            const response = await axios.get(`${BaseUrl}/${endPoint}/${userId}`);
+            const response = await axios.get(`${BaseUrl}/${endPoint}/${userId}`,{withCredentials:true,});
             
-            console.log(response)
+            
             setData(response);
             return response;
         } catch (error) {
@@ -55,9 +55,9 @@ const [err, setErr] = useState(null);
     const addData = async (endPoint, newData) => {
         console.log("form data is",newData)
         try {
-            const response = await axios.post(`${BaseUrl}/${endPoint}`, newData);
+            const response = await axios.post(`${BaseUrl}/${endPoint}`, newData ,{withCredentials:true,});
             setData((prevData) => [...prevData, response.data]);
-            console.log(response)
+            
             return response; 
         } catch (error) {
             const errorMessage = error.response ? error.response.data.message : 'Error adding data';
@@ -75,7 +75,7 @@ const [err, setErr] = useState(null);
 
 const updateData = async (endPoint, id, updatedData) => {
         try {
-            const response = await axios.put(`${BaseUrl}/${endPoint}/${id}`, updatedData);
+            const response = await axios.put(`${BaseUrl}/${endPoint}/${id}`, updatedData ,{withCredentials:true,});
             setData((prevData) =>
                 prevData.map((item) => (item.id === id ? response.data : item))
             );
@@ -94,7 +94,7 @@ const updateData = async (endPoint, id, updatedData) => {
     
 const deleteData = async (endPoint, id) => {
         try {
-            await axios.delete(`${BaseUrl}/${endPoint}/${id}`);
+            await axios.delete(`${BaseUrl}/${endPoint}/${id}` ,{withCredentials:true,});
             fetchData(endPoint)
         } catch (error) {
             setErr(error.response ? error.response.data.message : 'Error deleting data');
@@ -115,12 +115,7 @@ const UploadImage = async (endPoint, formData) => {
     }
 
     try {
-        
-        for (let [key, value] of formData.entries()) {
-            console.log('FormData entry:', key, value);
-        }
-
-        const response = await axios.post(`${BaseUrl}/${endPoint}`, formData, {
+        const response = await axios.post(`${BaseUrl}/${endPoint}`, formData, {withCredentials:true,},{
             headers: {
                 'Content-Type': 'multipart/form-data',
             }

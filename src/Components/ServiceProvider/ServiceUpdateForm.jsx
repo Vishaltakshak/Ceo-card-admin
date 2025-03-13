@@ -89,8 +89,8 @@ export default function ServiceUpdateForm({
 
     const serviceData = {
       ...formData,
-      BannerIMG: ImgUrl[0],
-      ServiceIMG: ImgUrl[1]
+      BannerIMG: ImgUrl.BannerIMG,
+      ServiceIMG: ImgUrl.ServiceIMG
     };
 
     await updateData("subnav/link/update", navbar._id, serviceData);

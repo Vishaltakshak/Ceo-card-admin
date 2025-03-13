@@ -25,7 +25,10 @@ export default function VendorManagementUpdateForm({ user, active, setActive, on
         Max: 0,
       },
     },
-  MapUrl:''
+  MapUrl:'',
+  City:'',
+  Brand:'',
+  Paid:''
   });
 
   
@@ -84,7 +87,10 @@ export default function VendorManagementUpdateForm({ user, active, setActive, on
             VendorOpenHours: userData.VendorOpenHours || {},
             VendorPricingInfo: userData.VendorPricingInfo || { Currency: '', PriceRange: { Min: 0, Max: 0 } },
             MapUrl: userData.MapUrl || '',
-            VendorImages: userData.VendorImages || '', // Ensure this is set correctly
+            VendorImages: userData.VendorImages || '', 
+            City:userData.City||'',
+            Brand:userData.Brand||'',
+            Paid:userData.Paid||''
           }));
   
         }
@@ -212,7 +218,11 @@ export default function VendorManagementUpdateForm({ user, active, setActive, on
              <input type="url" id="VendorWebsite" name="VendorWebsite" value={formData.VendorWebsite} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
            </div>
          </div>
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <div>
+            <label htmlFor='City'className="block text-sm font-medium text-gray-700 mb-1">City</label>
+            <input type="String" name='City' onChange={handleChange} value={formData.City} className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
+           </div>
            <div>
              <label htmlFor="VendorDescription" className="block text-sm font-medium text-gray-700 mb-1">Vendor Description</label>
              <textarea id="VendorDescription" name="VendorDescription" value={formData.VendorDescription} onChange={handleChange} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
@@ -223,6 +233,10 @@ export default function VendorManagementUpdateForm({ user, active, setActive, on
            </div>
          </div>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <div>
+            <label htmlFor='Brand'className="block text-sm font-medium text-gray-700 mb-1">Brand Name/Hotel Group</label>
+            <input type="String" name='Brand' onChange={handleChange} value={formData.Brand} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
+           </div>
            <div>
              <label htmlFor="VendorRating" className="block text-sm font-medium text-gray-700 mb-1">Vendor Rating</label>
              <input type="number" id="VendorRating" name="VendorRating" value={formData.VendorRating} onChange={handleChange} min="0" max="5" step="0.1" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
@@ -306,6 +320,18 @@ export default function VendorManagementUpdateForm({ user, active, setActive, on
             onChange={handleChange}
             className='flex-grow px-3 py-2 border border-gray-300 rounded-md'
           />
+          </div>
+          <div className='mb-6 flex'>
+          <input
+          className="mb-[17px]"
+            type="checkbox"
+            name="Premium Partner"
+            checked={formData.Paid}
+            onChange={(e) => setFormData({ ...formData, Paid: e.target.checked })}
+          />
+
+          <h3 className='text-xl font-bold mb-4'>Premium Partner</h3>
+
           </div>
         <div>
           <label htmlFor="VendorStatus" className="block text-sm font-medium text-gray-700 mb-1">Vendor Status</label>

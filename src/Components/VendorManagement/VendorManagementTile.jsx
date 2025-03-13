@@ -30,7 +30,7 @@ const VendorManagementTile = ({user, onUpdate, DeleteVendor}) => {
   return (
     <div className="bg-white shadow-md rounded-lg p-4 flex items-start space-x-4">
       {active===0?(<><div className="flex-grow">
-        <h2 className="text-xl font-bold">{user.ContactName}</h2>
+        <h2 className="text-xl font-bold">{user.VendorName}</h2>
         <div className="mt-2 flex space-x-4">
           <img 
             src={user.VendorImages} 

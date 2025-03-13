@@ -55,10 +55,10 @@ const [maincat, setmaincat]= useState([
         var ImgUrl=[];
         const imgData = new FormData;
         imgData.append("BannerIMG", formData.BannerIMG);
-imgData.append("ServiceIMG", formData.ServiceIMG);
+        imgData.append("ServiceIMG", formData.ServiceIMG);
 
         const response = await UploadImage("subnav/link/service/img/upload", imgData)
-        console.log("service images", response.urls)
+        console.log("service images", response.urls.BannerIMG)
         ImgUrl=response.urls;
 
         
@@ -66,7 +66,7 @@ imgData.append("ServiceIMG", formData.ServiceIMG);
         throw new error
         
       }
-      const serviceData = {...formData, BannerIMG: ImgUrl[0], ServiceIMG:ImgUrl[1]}
+      const serviceData = {...formData, BannerIMG: ImgUrl.BannerIMG, ServiceIMG:ImgUrl.ServiceIMG}
       
       await addData('subnav/link/add', serviceData); 
       console.log('Category updated successfully');

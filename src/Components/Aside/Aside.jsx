@@ -6,7 +6,7 @@ const AsideSection = ({ setActive, active }) => {
   return (
     <aside>
         
-      <div className='asideSection'>
+      <div className='asideSection w-[39%] md:w-[37vh]'>
         <ul className="asidelist">
           <li>Main Navigation</li>
           {AsideList.map((e) => {

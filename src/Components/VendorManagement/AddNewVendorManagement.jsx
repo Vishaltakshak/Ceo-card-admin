@@ -25,7 +25,10 @@ export default function AddNewVendorManagementForm({ page, showForm }) {
         Max: 0,
       },
     },
-    MapUrl:''
+    MapUrl:'',
+    City:'',
+    Brand:'',
+    Paid:''
   });
 
 
@@ -51,7 +54,10 @@ const handleUserUpdate = async( updatedUser) => {
 
         VendorOpenHours,
         VendorPricingInfo,
-        MapUrl
+        MapUrl,
+        City,
+        Brand,
+        Paid
       } = updatedUser; // Destructure relevant data
   
       const sanitizedData = {
@@ -70,6 +76,9 @@ const handleUserUpdate = async( updatedUser) => {
         VendorOpenHours,
         VendorPricingInfo,
         MapUrl,
+        City,
+        Brand,
+        Paid
       };
       try {
         await addData('Vendor/add', sanitizedData);
@@ -110,9 +119,6 @@ const handleUserUpdate = async( updatedUser) => {
     
       const formPayLoad ={...formData, VendorImages:ImgUrl} 
       await addData('Vendor/add', formPayLoad);
-      console.log('Vendor updated successfully');
-      console.log("formdata is", formPayLoad)
-      
       showForm(0);
     } catch (error) {
       console.error('Error updating vendor:', error);
@@ -151,7 +157,7 @@ const handleUserUpdate = async( updatedUser) => {
   const handlePricingChange = (field, value) => {
     setFormData((prevState) => {
       if (field === 'Currency') {
-        // Update Currency directly
+   
         return {
           ...prevState,
           VendorPricingInfo: {
@@ -160,14 +166,14 @@ const handleUserUpdate = async( updatedUser) => {
           },
         };
       } else {
-        // Update PriceRange fields (Min or Max)
+      
         return {
           ...prevState,
           VendorPricingInfo: {
             ...prevState.VendorPricingInfo,
             PriceRange: {
               ...prevState.VendorPricingInfo.PriceRange,
-              [field]: Number(value), // Ensure the value is converted to a number
+              [field]: Number(value), 
             },
           },
         };
@@ -256,7 +262,7 @@ const handleUserUpdate = async( updatedUser) => {
              <input type="url" id="VendorWebsite" name="VendorWebsite" value={formData.VendorWebsite} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
            </div>
          </div>
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
            <div>
              <label htmlFor="VendorDescription" className="block text-sm font-medium text-gray-700 mb-1">Vendor Description</label>
              <textarea id="VendorDescription" name="VendorDescription" value={formData.VendorDescription} onChange={handleChange} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
@@ -265,8 +271,16 @@ const handleUserUpdate = async( updatedUser) => {
              <label htmlFor="VendorAddress" className="block text-sm font-medium text-gray-700 mb-1">Vendor Address</label>
              <textarea id="VendorAddress" name="VendorAddress" value={formData.VendorAddress} onChange={handleChange} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
            </div>
+           <div>
+            <label htmlFor='City'className="block text-sm font-medium text-gray-700 mb-1">City</label>
+            <input type="String" name='City' onChange={handleChange} value={formData.City} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
+           </div>
          </div>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <div>
+            <label htmlFor='Brand'className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+            <input type="String" name='Brand' onChange={handleChange} value={formData.Brand} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
+           </div>
            <div>
              <label htmlFor="VendorRating" className="block text-sm font-medium text-gray-700 mb-1">Vendor Rating</label>
              <input type="string" id="VendorRating" name="VendorRating" value={formData.VendorRating} onChange={handleChange} min="0" max="5" step="0.1" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" />
@@ -331,7 +345,8 @@ const handleUserUpdate = async( updatedUser) => {
         </div>
 
         {/* Location Coordinates Section */}
-        <div className='mb-6'>
+        <div>
+        <div className='mb-6 '>
           <h2 className='text-xl font-bold mb-4'>Map Url</h2>
           {/* Latitude Input */}
           <input
@@ -342,6 +357,15 @@ const handleUserUpdate = async( updatedUser) => {
             onChange={handleChange}
             className='flex-grow px-3 py-2 border border-gray-300 rounded-md'
           />
+          </div>
+          <div className='mb-6 flex'>
+          <input type="radio" name="Premium Partner" id=""
+           className='mb-[19px] mr-4' value={formData.Paid}
+          onChange={(e) => setFormData({ ...formData, paid: e.target.checked })}
+          />
+          <h3 className='text-xl font-bold mb-4'>Premium Partner</h3>
+
+          </div>
           </div>
          
         <div>
